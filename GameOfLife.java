@@ -2,10 +2,10 @@
  * This project will simulate John Conway's famous Game of Life, where cells either live,      *
  * die, or repopulate based on a pre-defined set of rules.									   *
  *                                                                                             *
- * 1) Any live cell with less than two live neighbours dies due to underpopulation             *
- * 2) Any live cell with two or three live neighbours continues to live                        *
- * 3) Any live cell with more than three live neighbours dies due to overpopulation            *
- * 4) Any dead cell with exactly three live neighbours becomes a live cell due to repopulation *
+ * 1) Any live cell with less than two live neighbors dies due to underpopulation             *
+ * 2) Any live cell with two or three live neighbors continues to live                        *
+ * 3) Any live cell with more than three live neighbors dies due to overpopulation            *
+ * 4) Any dead cell with exactly three live neighbors becomes a live cell due to repopulation *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 */
 
@@ -13,26 +13,31 @@ import java.util.Scanner;   // for getting user input
 
 public class GameOfLife
 {
+	static int width = 0;
+	static int height = 0;
+
 	public static void main(String[] args)
 	{
 		Scanner s = new Scanner(System.in);   // gets user input for width and height
 		System.out.print("Please input width: ");
-		int x = s.nextInt();
-		System.out.print("\n Please input height: ");
-		int y = s.nextInt();
+		width = s.nextInt();
+		System.out.print("Please input height: ");
+		height = s.nextInt();
 
  		// board states are stored in 2D arrays
-		int[][] state = randomState(x, y);   // create a state where each cell is randomized
-		render(state, x, y);   // displays state in command line				  
+		int[][] state = randomState(width, height);   // create a state where each cell is randomized
+		render(state, width, height);   // displays state in command line
 
+		int[][] newState = nextBoardState(state);
+		render(newState, width, height);  
 	}
 	// parameters for with and height, returns board with cells randomized as 0 or 1
-	public static int[][] randomState(int width, int height)
+	public static int[][] randomState(int x, int y)
 	{
 		int[][] randomState = new int[width][height];
-		for(int i = 0; i < height; i++)
+		for(int i = 0; i < y; i++)
 		{
-			for(int j = 0; j < width; j++)
+			for(int j = 0; j < x; j++)
 			{
 				randomState[i][j] = (int)Math.round(Math.random());
 			}
@@ -54,5 +59,71 @@ public class GameOfLife
 			}
 			System.out.print("\n");
 		}
+		System.out.println();
 	}
+
+	// uses current board state to calculate and return next board state based on rules defined above
+	public static int[][] nextBoardState(int[][] currState)
+	{
+		int[][] newState = emptyState(width, height);   // cannot update currState, or next state of cells will be wrongly changed
+        
+        for(int i = 0; i < height; i++)
+        {
+        	for(int j = 0; j < width; j++)
+        	{
+        		int amount = checkNeighbors(currState, i, j);
+        		if(currState[i][j] == 0)   // cell is currently dead
+        		{
+        			if(amount == 3)
+        				newState[i][j] = 1;   // cell becomes alive
+        		}
+        		else if(currState[i][j] == 1)   // cell is currently alive
+        		{
+        			if(amount == 0 || amount == 1)
+        				newState[i][j] = 0;   // cell becomes dead
+        			else if(amount == 2 || amount == 3)
+        				newState[i][j] = 1;   // cell continues to be alive
+        			else if(amount > 3)
+        				newState[i][j] = 0;   // cell becomes dead
+        		}  
+        	}
+        }
+        return newState;
+	}
+
+	// returns a board of correct size and with all cells set to 0
+	public static int[][] emptyState(int x, int y)
+	{
+		int[][] emptyBoard = new int[width][height];
+		for(int i = 0; i < y; i++)
+		{
+			for(int j = 0; j < x; j++)
+			{
+				emptyBoard[i][j] = 0;
+			}
+		}
+		return emptyBoard;
+	}
+
+	// takes in board and checks a cell's neighbors, returning the number of living neighbors
+	public static int checkNeighbors(int[][] board, int i, int j) 
+	{
+        int count = 0;
+        for (int x = -1; x <= 1; x++) 
+        {
+            for (int y = -1; y <= 1; y++)
+            {
+                if ((x != 0 || y != 0) && checkCell(board, i + x, j + y))
+                    ++count;
+            }
+        }
+        return count;
+    }
+    
+    // 
+    public static boolean checkCell(int[][] board,int x, int y)
+    {
+        return (x >= 0 && y >= 0 && x < width && y < height && board[x][y] == 1);
+    }
+    
 }
